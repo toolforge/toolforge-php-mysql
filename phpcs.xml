@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<ruleset name="toolforge">
+	<file>.</file>
+	<exclude-pattern>vendor/</exclude-pattern>
+    <exclude-pattern>.git</exclude-pattern>
+
+	<arg name="encoding" value="utf-8"/>
+	<arg name="extensions" value="php"/>
+	<arg name="report" value="full"/>
+	<arg name="report" value="summary"/>
+	<arg value="sp"/>
+
+	<rule ref="vendor/mediawiki/mediawiki-codesniffer/MediaWiki"/>
+</ruleset>
+

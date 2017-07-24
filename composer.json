@@ -1,0 +1,28 @@
+{
+    "name": "bd808/toolforge-mysql",
+    "description": "Helpers for working with MySQL databases on Wikimedia's Toolforge service",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Bryan Davis",
+            "email": "bd808@wikimedia.org"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Bd808\\Toolforge\\Mysql\\": "src/"
+        }
+    },
+    "require-dev": {
+        "jakub-onderka/php-parallel-lint": "~0.9",
+        "mediawiki/mediawiki-codesniffer": "~0.10"
+    },
+    "scripts": {
+        "fix": "phpcbf",
+        "test": [
+            "parallel-lint . --exclude vendor",
+            "phpcs -p"
+        ]
+    }
+}
