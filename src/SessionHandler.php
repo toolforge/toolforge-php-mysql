@@ -24,12 +24,17 @@
 
 namespace Bd808\Toolforge\Mysql;
 
+use Defuse\Crypto\Crypto;
+use Defuse\Crypto\Exception\WrongKeyOrModifiedCiphertextException;
+use Defuse\Crypto\Key;
 use PDO;
 use PDOException;
 use SessionHandlerInterface;
 
 /**
  * MySQL/MariaDB session storage backend for Toolforge.
+ *
+ * Session data is encrypted at rest using an encryption key.
  *
  * @copyright 2017 Wikimedia Foundation and contributors
  * @license MIT
@@ -62,6 +67,11 @@ class SessionHandler implements SessionHandlerInterface {
 	private $dbtable;
 
 	/**
+	 * @var Key Encryption key
+	 */
+	private $key;
+
+	/**
 	 * @var PDO Database connection
 	 */
 	private $dbh;
@@ -71,12 +81,14 @@ class SessionHandler implements SessionHandlerInterface {
 	 * @param string $dbname Database name excluding ToolsDB "{$user}__"
 	 *     prefix.
 	 * @param string $dbtable Session storage table name.
+	 * @param string $keyFile Encryption key file
 	 * @throws \PDOException Raised if connection fails
 	 */
 	public function __construct(
 		$dbhost = null,
 		$dbname = null,
-		$dbtable = null
+		$dbtable = null,
+		$keyFile = null
 	) {
 		$dbhost = $dbhost ?: self::DEFAULT_DBHOST;
 		$dbname = $dbname ?: self::DEFAULT_DBNAME;
@@ -94,6 +106,9 @@ class SessionHandler implements SessionHandlerInterface {
 				PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
 			]
 		);
+
+		$keyFile = $keyFile ?: Helpers::defaultEncryptionKeyPath();
+		$this->key = Helpers::loadEncryptionKey( $keyFile );
 	}
 
 	/**
@@ -222,8 +237,10 @@ ESQL;
 		try {
 			$stmt->execute( [ $session_id ] );
 			$res = $stmt->fetch();
-			return $res['data'];
+			return Crypto::decrypt( $res['data'], $this->key );
 		} catch ( PDOException $e ) {
+			return '';
+		} catch ( WrongKeyOrModifiedCiphertextException $e ) {
 			return '';
 		}
 	}
@@ -257,9 +274,10 @@ ESQL;
 			"INSERT INTO `{$this->dbtable}` (sess_id, data) " .
 			"VALUES( :id, :data ) ".
 			"ON DUPLICATE KEY UPDATE data = :data;" );
+		$ciphertext = Crypto::encrypt( $session_data, $this->key );
 		try {
 			$this->dbh->begintransaction();
-			$stmt->execute( [ 'id' => $session_id, 'data' => $session_data ] );
+			$stmt->execute( [ 'id' => $session_id, 'data' => $ciphertext ] );
 			$this->dbh->commit();
 			return true;
 		} catch ( PDOException $e ) {

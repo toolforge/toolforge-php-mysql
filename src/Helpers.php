@@ -24,6 +24,8 @@
 
 namespace Bd808\Toolforge\Mysql;
 
+use Defuse\Crypto\Key;
+
 /**
  * Utility class that provides helper methods for working with MySQL/MariaDB
  * databases in Wikimedia's Toolforge environment.
@@ -32,6 +34,12 @@ namespace Bd808\Toolforge\Mysql;
  * @license MIT
  */
 class Helpers {
+
+	/**
+	 * @var string Default encryption key name
+	 */
+	const DEFAULT_ENCRYPTION_KEY = '.toolforge_mysql_key';
+
 	/**
 	 * Get the current shell user's home directory.
 	 * @return string Path to home directory
@@ -54,6 +62,47 @@ class Helpers {
 			throw new \RuntimeException( "Error reading {$cnf}" );
 		}
 		return $settings['client'];
+	}
+
+	/**
+	 * Get default encryption key file path.
+	 * @return string Path to default encryption key
+	 */
+	public static function defaultEncryptionKeyPath() {
+		return static::homedir() . '/' . self::DEFAULT_ENCRYPTION_KEY;
+	}
+
+	/**
+	 * Load an encryption key from disk.
+	 * @param string $file Path to file
+	 * @return \Defuse\Crypto\Key Encryption key
+	 */
+	public static function loadEncryptionKey( $file ) {
+		$asciiKey = file_get_contents( $file );
+		return Key::loadFromAsciiSafeString( $asciiKey );
+	}
+
+	/**
+	 * Create a new encryption key file.
+	 * @param string $file Path to file
+	 * @return \Defuse\Crypto\Key Encryption key
+	 */
+	public static function createKey( $file ) {
+		if ( touch( $file ) === false ) {
+			throw new \RuntimeException( "Failed to touch {$file}" );
+		}
+		if ( chmod( $file, 0600 ) === false ) {
+			throw new \RuntimeException( "Failed to chmod {$file}" );
+		}
+		$key = Key::createNewRandomKey();
+		$asciiKey = $key->saveToAsciiSafeString();
+		if ( file_put_contents( $file, $asciiKey ) === false ) {
+			throw new \RuntimeException( "Failed to save key to {$file}" );
+		}
+		if ( chmod( $file, 0400 ) === false ) {
+			throw new \RuntimeException( "Failed to chmod {$file}" );
+		}
+		return $key;
 	}
 
 	private function __construct() {

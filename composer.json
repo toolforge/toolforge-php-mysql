@@ -15,6 +15,7 @@
         }
     },
     "require": {
+        "defuse/php-encryption": "~2.1",
         "symfony/console": "~3.3"
     },
     "require-dev": {
@@ -22,7 +23,7 @@
         "mediawiki/mediawiki-codesniffer": "~0.10"
     },
     "bin": [
-        "bin/create-session-database"
+        "bin/toolforge-mysql-session-init"
     ],
     "scripts": {
         "fix": "phpcbf",

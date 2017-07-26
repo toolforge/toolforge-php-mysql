@@ -43,18 +43,20 @@ foreach ( [
 	}
 }
 
-( new Application( 'create-session-database', '1.0.0' ) )
-	->register( 'create-session-database' )
+( new Application( 'toolforge-mysql-session-init', '1.0.0' ) )
+	->register( 'toolforge-mysql-session-init' )
 	->addOption( 'host', null, InputOption::VALUE_REQUIRED, 'DB host' )
 	->addOption( 'db', null, InputOption::VALUE_REQUIRED, 'Database name' )
 	->addOption( 'table', null, InputOption::VALUE_REQUIRED, 'Session table' )
+	->addOption( 'key', null, InputOption::VALUE_REQUIRED, 'Encryption key file' )
 	->setCode( function( InputInterface $input, OutputInterface $output ) {
 		$io = new SymfonyStyle( $input, $output );
-		$io->title( 'Create session database' );
+		$io->title( 'Initialize Toolforge MySQL sessions' );
 
 		$dbhost = $input->getOption( 'host' ) ?: SessionHandler::DEFAULT_DBHOST;
 		$dbname = $input->getOption( 'db' ) ?: SessionHandler::DEFAULT_DBNAME;
 		$dbtable = $input->getOption( 'table' ) ?: SessionHandler::DEFAULT_DBTABLE;
+		$keyFile = $input->getOption( 'key' ) ?: Helpers::defaultEncryptionKeyPath();
 
 		$creds = Helpers::mysqlCredentials();
 		$dbname = "{$creds['user']}__{$dbname}";
@@ -89,9 +91,17 @@ foreach ( [
 			$dbh->exec( SessionHandler::createTableStatement( $dbtable ) );
 			$io->success( "Table {$dbtable} created." );
 		}
+
+		$io->section( 'Check for encryption key' );
+		if ( file_exists( $keyFile ) ) {
+			$io->success( "Key {$keyFile} exists." );
+		} else {
+			Helpers::createKey( $keyFile );
+			$io->success( "Key {$keyFile} created." );
+		}
 	} )
 	->getApplication()
-	->setDefaultCommand( 'create-session-database', true )
+	->setDefaultCommand( 'toolforge-mysql-session-init', true )
 	->run();
 
 

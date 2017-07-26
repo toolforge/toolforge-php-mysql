@@ -15,13 +15,13 @@ Usage
 
 ### Storing sessions in ToolsDB
 
-Create your session database and table:
+Create your session database, table, and encryption key:
 
 ```
-$ vendor/bin/create-session-database
+$ vendor/bin/toolforge-mysql-session-init
 ```
 
-See `create-session-database --help` for additional options.
+See `toolforge-mysql-session-init --help` for additional options.
 
 Store sessions in your database:
 ```php
