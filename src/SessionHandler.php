@@ -114,11 +114,10 @@ class SessionHandler implements SessionHandlerInterface {
 	/**
 	 * Register this handler and start session.
 	 *
-	 * @param int $sessonLifetime Minimum time sessions should live in seconds
+	 * @param int $sessionLifetime Minimum time sessions should live in seconds
 	 * @param int $cookieLifetime Lifetime of the session cookie in seconds
 	 * @param string $path Cookie path
 	 * @param string $name Cookie name
-	 * @param string $domain Cookie domain
 	 * @param bool $secure Whether cookie only be transmitted over HTTPS
 	 *     connections.
 	 * @param bool $httponly Marks the cookie as accessible only through the
@@ -130,7 +129,6 @@ class SessionHandler implements SessionHandlerInterface {
 		$cookieLifetime = 0,
 		$path = null,
 		$name = null,
-		$domain = 'tools.wmflabs.org',
 		$secure = true,
 		$httponly = true
 	) {
@@ -157,7 +155,6 @@ class SessionHandler implements SessionHandlerInterface {
 		// Cookie settings
 		ini_set( 'session.cookie_lifetime', $cookieLifetime );
 		ini_set( 'session.cookie_path', $path );
-		ini_set( 'session.cookie_domain', $domain );
 		ini_set( 'session.cookie_secure', $secure );
 		ini_set( 'session.cookie_httponly', $httponly );
 		session_name( $name );
