@@ -1,0 +1,97 @@
+#!/usr/bin/env php
+<?php
+/**
+ * Copyright 2017 Wikimedia Foundation and contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including without
+ * limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to
+ * whom the Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+
+namespace Bd808\Toolforge\Mysql;
+
+use PDO;
+use PDOException;
+use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
+
+foreach ( [
+	__DIR__ . '/../../../autoload.php',
+	__DIR__ . '/../vendor/autoload.php'
+] as $file ) {
+	if ( file_exists( $file ) ) {
+		require $file;
+		break;
+	}
+}
+
+( new Application( 'create-session-database', '1.0.0' ) )
+	->register( 'create-session-database' )
+	->addOption( 'host', null, InputOption::VALUE_REQUIRED, 'DB host' )
+	->addOption( 'db', null, InputOption::VALUE_REQUIRED, 'Database name' )
+	->addOption( 'table', null, InputOption::VALUE_REQUIRED, 'Session table' )
+	->setCode( function( InputInterface $input, OutputInterface $output ) {
+		$io = new SymfonyStyle( $input, $output );
+		$io->title( 'Create session database' );
+
+		$dbhost = $input->getOption( 'host' ) ?: SessionHandler::DEFAULT_DBHOST;
+		$dbname = $input->getOption( 'db' ) ?: SessionHandler::DEFAULT_DBNAME;
+		$dbtable = $input->getOption( 'table' ) ?: SessionHandler::DEFAULT_DBTABLE;
+
+		$creds = Helpers::mysqlCredentials();
+		$dbname = "{$creds['user']}__{$dbname}";
+		$dbh = new PDO(
+			"mysql:host={$dbhost}",
+			$creds['user'], $creds['password'],
+			[
+				PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+				PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+				PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
+			]
+		);
+
+		try {
+			$dbh->exec( "USE `{$dbname}`;" );
+			$io->success( "Database {$dbname} exists." );
+		} catch ( PDOException $e ) {
+			$dbh->exec( "CREATE DATABASE `{$dbname}`;" );
+			$dbh->exec( "USE `{$dbname}`;" );
+			$io->success( "Created database {$dbname}." );
+		}
+
+		try {
+			$res = $pdo->query( "SELECT 1 FROM `{$dbtable}` LIMIT 1" );
+			if ( $res === false ) {
+				throw new PDOException( 'table not found' );
+			}
+			$io->success( "Table {$dbtable} exists." );
+		} catch ( PDOException $e ) {
+			$pdo->exec( SessionHandler::createTableStatement( $dbtable ) );
+			$io->success( "Table {$dbtable} created." );
+		}
+	} )
+	->getApplication()
+	->setDefaultCommand( 'create-session-database', true )
+	->run();
+
+
+
+// vim:ft=php:

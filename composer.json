@@ -14,10 +14,16 @@
             "Bd808\\Toolforge\\Mysql\\": "src/"
         }
     },
+    "require": {
+        "symfony/console": "~3.3"
+    },
     "require-dev": {
         "jakub-onderka/php-parallel-lint": "~0.9",
         "mediawiki/mediawiki-codesniffer": "~0.10"
     },
+    "bin": [
+        "bin/create-session-database"
+    ],
     "scripts": {
         "fix": "phpcbf",
         "test": [

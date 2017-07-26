@@ -37,6 +37,21 @@ use SessionHandlerInterface;
 class SessionHandler implements SessionHandlerInterface {
 
 	/**
+	 * @var string Default database server
+	 */
+	const DEFAULT_DBHOST = 'tools.labsdb';
+
+	/**
+	 * @var string Default database name excluding ToolsDB "{$user}__" prefix
+	 */
+	const DEFAULT_DBNAME = 'phpsessions';
+
+	/**
+	 * @var string Default session storage table name
+	 */
+	const DEFAULT_DBTABLE = 'phpsessions';
+
+	/**
 	 * @var string Database name
 	 */
 	private $dbname;
@@ -59,10 +74,14 @@ class SessionHandler implements SessionHandlerInterface {
 	 * @throws \PDOException Raised if connection fails
 	 */
 	public function __construct(
-		$dbhost = 'tools.labsdb',
-		$dbname = 'phpsessions',
-		$dbtable = 'phpsessions'
+		$dbhost = null,
+		$dbname = null,
+		$dbtable = null
 	) {
+		$dbhost = $dbhost ?: self::DEFAULT_DBHOST;
+		$dbname = $dbname ?: self::DEFAULT_DBNAME;
+		$dbtable = $dbtable ?: self::DEFAULT_DBTABLE;
+
 		$creds = Helpers::mysqlCredentials();
 		$this->dbname = "{$creds['user']}__{$dbname}";
 		$this->dbtable = $dbtable;
@@ -79,11 +98,13 @@ class SessionHandler implements SessionHandlerInterface {
 
 	/**
 	 * Get create statement for session storage table.
+	 *
+	 * @param string $dbtable Session storage table name
 	 * @return string Table DDL statement
 	 */
-	public function createTableStatement() {
+	public static function createTableStatement( $dbtable ) {
 		$sql = <<<ESQL
-CREATE TABLE IF NOT EXISTS `{$this->dbtable}` (
+CREATE TABLE IF NOT EXISTS `{$dbtable}` (
 	sess_id VARCHAR(255) NOT NULL,
 	data TEXT NOT NULL,
 	t_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

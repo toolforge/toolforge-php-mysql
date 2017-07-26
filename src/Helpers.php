@@ -48,8 +48,11 @@ class Helpers {
 	 * @return array [ "user" => "...", "password" => "..." ]
 	 */
 	public static function mysqlCredentials() {
-		$settings = parse_ini_file(
-			static::homedir() . '/replica.my.cnf', true, INI_SCANNER_RAW );
+		$cnf = static::homedir() . '/replica.my.cnf';
+		$settings = parse_ini_file( $cnf, true, INI_SCANNER_RAW );
+		if ( $settings === false ) {
+			throw new \RuntimeException( "Error reading {$cnf}" );
+		}
 		return $settings['client'];
 	}
 
