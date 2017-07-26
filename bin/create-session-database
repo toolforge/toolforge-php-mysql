@@ -68,6 +68,7 @@ foreach ( [
 			]
 		);
 
+		$io->section( 'Check for database' );
 		try {
 			$dbh->exec( "USE `{$dbname}`;" );
 			$io->success( "Database {$dbname} exists." );
@@ -77,14 +78,15 @@ foreach ( [
 			$io->success( "Created database {$dbname}." );
 		}
 
+		$io->section( 'Check for table' );
 		try {
-			$res = $pdo->query( "SELECT 1 FROM `{$dbtable}` LIMIT 1" );
+			$res = $dbh->query( "SELECT 1 FROM `{$dbtable}` LIMIT 1" );
 			if ( $res === false ) {
 				throw new PDOException( 'table not found' );
 			}
 			$io->success( "Table {$dbtable} exists." );
 		} catch ( PDOException $e ) {
-			$pdo->exec( SessionHandler::createTableStatement( $dbtable ) );
+			$dbh->exec( SessionHandler::createTableStatement( $dbtable ) );
 			$io->success( "Table {$dbtable} created." );
 		}
 	} )
