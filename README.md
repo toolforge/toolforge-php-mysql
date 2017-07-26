@@ -29,10 +29,10 @@ Store sessions in your database:
 use Bd808\Toolforge\Mysql\SessionHandler;
 
 $sessionHandler = new SessionHandler();
-session_set_save_handler( $sessionHandler, true );
-session_register_shutdown();
-session_start();
+$sessionHandler->start();
 ```
+
+See [SessionHandler.php](src/SessionHandler.php) for additional options.
 
 License
 -------

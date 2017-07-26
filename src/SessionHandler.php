@@ -112,6 +112,63 @@ class SessionHandler implements SessionHandlerInterface {
 	}
 
 	/**
+	 * Register this handler and start session.
+	 *
+	 * @param int $sessonLifetime Minimum time sessions should live in seconds
+	 * @param int $cookieLifetime Lifetime of the session cookie in seconds
+	 * @param string $path Cookie path
+	 * @param string $name Cookie name
+	 * @param string $domain Cookie domain
+	 * @param bool $secure Whether cookie only be transmitted over HTTPS
+	 *     connections.
+	 * @param bool $httponly Marks the cookie as accessible only through the
+	 *     HTTP protocol.
+	 * @return bool True on success, false on failure
+	 */
+	public function start(
+		$sessionLifetime = 1440,
+		$cookieLifetime = 0,
+		$path = null,
+		$name = null,
+		$domain = 'tools.wmflabs.org',
+		$secure = true,
+		$httponly = true
+	) {
+		$tool = explode( '/', $_SERVER['REQUEST_URI'] )[1];
+		$path = $path ?: "/{$tool}";
+		$name = $name ?: "{$tool}_s";
+
+		// Only accept session id from cookie
+		ini_set( 'session.use_cookies', true );
+		ini_set( 'session.use_only_cookies', true );
+		ini_set( 'session.use_strict_mode', true );
+		ini_set( 'session.use_trans_sid', false );
+
+		// Use long session ids
+		ini_set( 'session.hash_function', 'sha256' );
+		ini_set( 'session.hash_bits_per_character', 6 );
+
+		// Don't cache pages where sessions are in use
+		ini_set( 'session.cache_limiter', 'nocache' );
+
+		// Sessions are eligible for cleanup after this many seconds
+		ini_set( 'session.gc_maxlifetime', $sessionLifetime );
+
+		// Cookie settings
+		ini_set( 'session.cookie_lifetime', $cookieLifetime );
+		ini_set( 'session.cookie_path', $path );
+		ini_set( 'session.cookie_domain', $domain );
+		ini_set( 'session.cookie_secure', $secure );
+		ini_set( 'session.cookie_httponly', $httponly );
+		session_name( $name );
+
+		session_set_save_handler( $this, true );
+		session_register_shutdown();
+
+		return session_start();
+	}
+
+	/**
 	 * Get create statement for session storage table.
 	 *
 	 * @param string $dbtable Session storage table name
