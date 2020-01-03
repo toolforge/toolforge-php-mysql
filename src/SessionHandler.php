@@ -44,7 +44,7 @@ class SessionHandler implements SessionHandlerInterface {
 	/**
 	 * @var string Default database server
 	 */
-	public const DEFAULT_DBHOST = 'tools.labsdb';
+	public const DEFAULT_DBHOST = 'tools.db.svc.eqiad.wmflabs';
 
 	/**
 	 * @var string Default database name excluding ToolsDB "{$user}__" prefix
@@ -291,6 +291,9 @@ ESQL;
 		try {
 			$stmt->execute( [ $session_id ] );
 			$res = $stmt->fetch();
+			if ( $res['data'] === NULL ) {
+				return '';
+			}
 			return Crypto::decrypt( $res['data'], $this->key );
 		} catch ( PDOException $e ) {
 			return '';
