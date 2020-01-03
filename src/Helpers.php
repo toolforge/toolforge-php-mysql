@@ -38,7 +38,7 @@ class Helpers {
 	/**
 	 * @var string Default encryption key name
 	 */
-	const DEFAULT_ENCRYPTION_KEY = '.toolforge_mysql_key';
+	public const DEFAULT_ENCRYPTION_KEY = '.toolforge_mysql_key';
 
 	/**
 	 * Get the current shell user's home directory.

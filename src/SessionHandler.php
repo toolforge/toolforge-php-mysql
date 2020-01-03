@@ -44,17 +44,17 @@ class SessionHandler implements SessionHandlerInterface {
 	/**
 	 * @var string Default database server
 	 */
-	const DEFAULT_DBHOST = 'tools.labsdb';
+	public const DEFAULT_DBHOST = 'tools.labsdb';
 
 	/**
 	 * @var string Default database name excluding ToolsDB "{$user}__" prefix
 	 */
-	const DEFAULT_DBNAME = 'phpsessions';
+	public const DEFAULT_DBNAME = 'phpsessions';
 
 	/**
 	 * @var string Default session storage table name
 	 */
-	const DEFAULT_DBTABLE = 'phpsessions';
+	public const DEFAULT_DBTABLE = 'phpsessions';
 
 	/**
 	 * @var string Database name
@@ -77,11 +77,11 @@ class SessionHandler implements SessionHandlerInterface {
 	private $dbh;
 
 	/**
-	 * @param string $dbhost Database server.
-	 * @param string $dbname Database name excluding ToolsDB "{$user}__"
+	 * @param string|null $dbhost Database server.
+	 * @param string|null $dbname Database name excluding ToolsDB "{$user}__"
 	 *     prefix.
-	 * @param string $dbtable Session storage table name.
-	 * @param string $keyFile Encryption key file
+	 * @param string|null $dbtable Session storage table name.
+	 * @param string|null $keyFile Encryption key file
 	 * @throws \PDOException Raised if connection fails
 	 */
 	public function __construct(
@@ -116,8 +116,8 @@ class SessionHandler implements SessionHandlerInterface {
 	 *
 	 * @param int $sessionLifetime Minimum time sessions should live in seconds
 	 * @param int $cookieLifetime Lifetime of the session cookie in seconds
-	 * @param string $path Cookie path
-	 * @param string $name Cookie name
+	 * @param string|null $path Cookie path
+	 * @param string|null $name Cookie name
 	 * @param bool $secure Whether cookie only be transmitted over HTTPS
 	 *     connections.
 	 * @param bool $httponly Marks the cookie as accessible only through the
@@ -326,7 +326,7 @@ ESQL;
 	public function write( $session_id, $session_data ) {
 		$stmt = $this->dbh->prepare(
 			"INSERT INTO `{$this->dbtable}` (sess_id, data) " .
-			"VALUES( :id, :data ) ".
+			"VALUES( :id, :data ) " .
 			"ON DUPLICATE KEY UPDATE data = :data;" );
 		$ciphertext = Crypto::encrypt( $session_data, $this->key );
 		try {

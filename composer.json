@@ -16,11 +16,12 @@
     },
     "require": {
         "defuse/php-encryption": "~2.1",
+        "php": ">=7.2.9",
         "symfony/console": "~3.3"
     },
     "require-dev": {
         "jakub-onderka/php-parallel-lint": "~0.9",
-        "mediawiki/mediawiki-codesniffer": "~0.10"
+        "mediawiki/mediawiki-codesniffer": "28.0.0"
     },
     "bin": [
         "bin/toolforge-mysql-session-init"
